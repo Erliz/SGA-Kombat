@@ -1,4 +1,4 @@
-function test(){
+function getAnsw(){
     var iframe = document.getElementById('frameLearnTask');
     var frameDoc = iframe.contentDocument || iframe.contentWindow.document;
     var iframe2 = frameDoc.getElementById('frameContent');
@@ -25,29 +25,23 @@ function test(){
 
             console.log(token);
             var alertLog=[];
-            var list = frame2Doc.getElementById('answers');
-            var listTable = frame2Doc.getElementById('AnswersTable');
+            var list = frame2Doc.getElementById('answers') || frame2Doc.getElementById('AnswersTable');
+
             if(list!=null){
-                var answ=list.getElementsByTagName('span');
-                for(var ti=0;ti<token.length;ti++){
-                    for(var ki=0;ki<answ.length;ki++){
-                        if(answ[ki].getAttribute('answerid')==token[ti]){
-                            alertLog.push(answ[ki].innerHTML);
+                var answ=list.getElementsByTagName('span') || list.getElementsByTagName('div');
+                for(var t=0;t<token.length;t++){
+                    for(var l=0;l<answ.length;l++){
+                        if(answ[l].getAttribute('answerid')==token[t] || answ[l].getAttribute('id')==token[t]){
+                            alertLog.push(answ[l].innerHTML);
                         }
                     }
                 }
-            }else if(listTable!=null){
-                var answ=listTable.getElementsByTagName('div');
-                for(var ti=0;ti<token.length;ti++){
-                    for(var di=0;di<answ.length;di++){
-                        if(answ[di].getAttribute('id')==token[ti])
-                            alertLog.push(answ[di].innerHTML);
-                    }
-                }
+            }else {
+                alert('Warning: no list!');
             }
             alert(alertLog.join('\n\n'));
         }
     };
     ajaxq.send(null);
 }
-test();
+getAnsw();
