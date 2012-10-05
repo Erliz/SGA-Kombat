@@ -42,18 +42,17 @@ var Erudit={
     answers:undefined,
 
     init:function(){
-        this.initAjax();
         this.getFrame();
-
+        this.initAjax();
     },
 
     initAjax:function(){
         this.ajax = new XMLHttpRequest();
-        this.ajax.open('get', this.getUrl);
+        this.ajax.open('get', this.getUrl());
         // в callback обрабатываем всю логику действия
         this.ajax.onreadystatechange = function(){
-            if(parent.ajax.readyState == 4){
-               this.parseAnswer(parent.ajax.responseText);
+            if(Erudit.ajax.readyState == 4){
+                Erudit.parseAnswer(Erudit.ajax.responseText);
             }
         }
     },
