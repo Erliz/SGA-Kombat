@@ -5,7 +5,8 @@
 var Erudit={
     msg:{
         error:{
-            wrapper:'Warning: no list!'
+            wrapper:'Warning: no list!',
+            showMethod:'No such output method'
         }
     },
 
@@ -37,13 +38,14 @@ var Erudit={
         ]
     },
 
+    cframe:undefined,
     iframe:undefined,
     url:'',
     ajax:undefined,
     answers:undefined,
+    showMethod:'alert',
 
     init:function(){
-        this.getFrame();
         this.initAjax();
     },
 
@@ -57,11 +59,20 @@ var Erudit={
         }
     },
 
-    getFrame:function(){
-        var iframe = document.getElementById('frameLearnTask');
-        var frameDoc = iframe.contentDocument || iframe.contentWindow.document;
-        var iframe2 = frameDoc.getElementById('frameContent');
-        this.iframe= iframe2.contentDocument || iframe2.contentWindow.document;
+    setShowMethod:function(method){
+        if(typeof method=='undefined') return;
+        this.showMethod=method;
+    },
+
+    getTframe:function(){
+        if(this.cframe) return this.cframe;
+        var frame = document.getElementById('frameLearnTask');
+        return this.cframe = frame.contentDocument || frame.contentWindow.document;
+    },
+
+    getIframe:function(){
+        var frame = this.getTframe().getElementById('frameContent');
+        this.iframe= frame.contentDocument || frame.contentWindow.document;
     },
 
     getDomainUrl:function(){
@@ -89,6 +100,7 @@ var Erudit={
 
     getAnswer:function(){
         this.cleanAnswers();
+        this.getIframe();
         this.ajax.open('get', this.getUrl());
         this.ajax.send(null);
     },
@@ -127,9 +139,15 @@ var Erudit={
     },
 
     showAnswers:function(){
-        alert(this.answers.texts.join('\n\n'));
+        var text=this.answers.texts.join('\n\n');
+        switch(this.showMethod){
+            case 'alert': alert(text);break;
+            case 'log': console.log(text);break;
+            default : alert(this.msg.error.showMethod);
+        }
     }
 };
 
 Erudit.init();
+Erudit.setShowMethod('log');
 Erudit.getAnswer();
