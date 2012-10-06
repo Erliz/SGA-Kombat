@@ -6,7 +6,8 @@ var Erudit={
     msg:{
         error:{
             wrapper:'Warning: no list!',
-            showMethod:'No such output method'
+            showMethod:'No such output method',
+            noAnswer:'No answers find!'
         }
     },
 
@@ -40,6 +41,7 @@ var Erudit={
 
     cframe:undefined,
     iframe:undefined,
+    wrapper:undefined,
     url:'',
     ajax:undefined,
     answers:undefined,
@@ -98,11 +100,24 @@ var Erudit={
         return this.getDomainUrl()+this.getScriptName();
     },
 
-    getAnswer:function(){
+    getAnswer:function(method){
+        if(typeof method!="undefined")this.setShowMethod(method);
         this.cleanAnswers();
         this.getIframe();
         this.ajax.open('get', this.getUrl());
         this.ajax.send(null);
+    },
+
+    checkinAnswer:function(){
+        var t=this.answers.tokens;
+        if(t.length==0) alert(this.msg.error.noAnswer);
+        var l=this.wrapper;
+        var fields=l.getElementsByTagName('input');
+        for(var i=0;i<t.length;i++){
+            for(var x=0;x<fields.length;x++){
+                if(fields[x].value==t[i])fields[x].checked=true;
+            }
+        }
     },
 
     parseAnswer:function(text){
@@ -111,13 +126,13 @@ var Erudit={
         // грепаем токены с ответами и их порядок
         this.answers.tokens=CheckAnswer.toString().match(this.regMask.token);
         // ищем врапер с ответами
-        var list = this.iframe.getElementById('answers') || this.iframe.getElementById('AnswersTable');
+        var list = this.wrapper = this.iframe.getElementById(this.html.wrappers[0]) || this.iframe.getElementById(this.html.wrappers[1]);
         if(list!=null){
             // ищем тексты ответов
-            var answ=list.getElementsByTagName('span') || list.getElementsByTagName('div');
+            var answ=list.getElementsByTagName(this.html.texts[0]) || list.getElementsByTagName(this.html.texts[1]);
             for(var t=0;t<this.answers.tokens.length;t++){
                 for(var l=0;l<answ.length;l++){
-                    if(answ[l].getAttribute('answerid')==this.answers.tokens[t] || answ[l].getAttribute('id')==this.answers.tokens[t]){
+                    if(answ[l].getAttribute(this.html.attr[0])==this.answers.tokens[t] || answ[l].getAttribute(this.html.attr[1])==this.answers.tokens[t]){
                         // формируем выдачу
                         this.answers.texts.push(answ[l].innerHTML.replace(this.regMask.text, ''));
                     }
@@ -143,11 +158,11 @@ var Erudit={
         switch(this.showMethod){
             case 'alert': alert(text);break;
             case 'log': console.log(text);break;
+            case 'check': this.checkinAnswer();break;
             default : alert(this.msg.error.showMethod);
         }
     }
 };
 
 Erudit.init();
-Erudit.setShowMethod('log');
-Erudit.getAnswer();
+Erudit.getAnswer('log');
