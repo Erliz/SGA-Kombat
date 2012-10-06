@@ -10,7 +10,10 @@ var Erudit={
             noAnswer:'No answers find!'
         }
     },
-
+    time:{
+        max:6,
+        min:3
+    },
     frames:[
         'frameLearnTask',
         'frameContent'
@@ -36,6 +39,9 @@ var Erudit={
         attr:[
             'answerid',
             'id'
+        ],
+        submit:[
+            'btAnswer'
         ]
     },
 
@@ -120,6 +126,18 @@ var Erudit={
         }
     },
 
+    submitAnswer:function(){
+        this.checkinAnswer();
+        // for slide lecture
+        var btn=this.iframe.getElementById(this.html.submit[0]);
+        setTimeout(function(){btn.click()},this.getRand()*1000);
+    },
+
+    getRand:function(){
+        var t=this.time;
+        return Math.random() * (t.max - t.min) + t.min;
+    },
+
     parseAnswer:function(text){
         // выполняем скаченный скрипт
         eval(text);
@@ -159,10 +177,11 @@ var Erudit={
             case 'alert': alert(text);break;
             case 'log': console.log(text);break;
             case 'check': this.checkinAnswer();break;
+            case 'submit': this.submitAnswer();break;
             default : alert(this.msg.error.showMethod);
         }
     }
 };
 
 Erudit.init();
-Erudit.getAnswer('log');
+Erudit.getAnswer('submit');
