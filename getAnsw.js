@@ -16,7 +16,8 @@ var Erudit={
     regMask:{
         token: /([a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})/g ,
         domain: /([a-zA-Z0-9\.\/:]*)Frameset\.aspx\?View=([0-9]*)&AttemptId=([0-9]*)/,
-        script: /(check_[0-9a-z-]*\.js)/
+        script: /(check_[0-9a-z-]*\.js)/,
+        text: /<\/?[^>]+>/gi
     },
     html:{
         wrappers:[
@@ -48,7 +49,6 @@ var Erudit={
 
     initAjax:function(){
         this.ajax = new XMLHttpRequest();
-        this.ajax.open('get', this.getUrl());
         // в callback обрабатываем всю логику действия
         this.ajax.onreadystatechange = function(){
             if(Erudit.ajax.readyState == 4){
@@ -89,6 +89,7 @@ var Erudit={
 
     getAnswer:function(){
         this.cleanAnswers();
+        this.ajax.open('get', this.getUrl());
         this.ajax.send(null);
     },
 
@@ -106,7 +107,7 @@ var Erudit={
                 for(var l=0;l<answ.length;l++){
                     if(answ[l].getAttribute('answerid')==this.answers.tokens[t] || answ[l].getAttribute('id')==this.answers.tokens[t]){
                         // формируем выдачу
-                        this.answers.texts.push(answ[l].innerHTML);
+                        this.answers.texts.push(answ[l].innerHTML.replace(this.regMask.text, ''));
                     }
                 }
             }
