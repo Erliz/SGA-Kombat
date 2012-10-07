@@ -49,6 +49,10 @@ var Erudit={
     iframe:undefined,
     wrapper:undefined,
     url:'',
+    node:{
+        prev:undefined,
+        current:undefined
+    },
     ajax:undefined,
     answers:undefined,
     showMethod:'alert',
@@ -180,6 +184,10 @@ var Erudit={
             case 'submit': this.submitAnswer();break;
             default : alert(this.msg.error.showMethod);
         }
+    },
+
+    runService:function(){
+
     }
 };
 
