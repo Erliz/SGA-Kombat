@@ -20,6 +20,7 @@ var Erudit={
     ],
     regMask:{
         token: /([a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})/g ,
+        string: /String\('([а-яА-Яa-zA-Z0-9- ]*)'\)/,
         domain: /([a-zA-Z0-9\.\/:]*)Frameset\.aspx\?View=([0-9]*)&AttemptId=([0-9]*)/,
         script: /(check_[0-9a-z-]*\.js)/,
         text: /<\/?[^>]+>/gi
@@ -30,8 +31,8 @@ var Erudit={
             'AnswersTable'
         ],
         texts:[
-            'span',
-            'div'
+            'div',
+            'span'
         ],
         inputs:[
             'input'
@@ -146,26 +147,33 @@ var Erudit={
         // выполняем скаченный скрипт
         eval(text);
         // грепаем токены с ответами и их порядок
-        this.answers.tokens=CheckAnswer.toString().match(this.regMask.token);
+        this.answers.tokens = CheckAnswer.toString().match(this.regMask.token);
+        if(this.answers.tokens!=null){
         // ищем врапер с ответами
-        var list = this.wrapper = this.iframe.getElementById(this.html.wrappers[0]) || this.iframe.getElementById(this.html.wrappers[1]);
-        if(list!=null){
-            // ищем тексты ответов
-            var answ=list.getElementsByTagName(this.html.texts[0]) || list.getElementsByTagName(this.html.texts[1]);
-            for(var t=0;t<this.answers.tokens.length;t++){
-                for(var l=0;l<answ.length;l++){
-                    if(answ[l].getAttribute(this.html.attr[0])==this.answers.tokens[t] || answ[l].getAttribute(this.html.attr[1])==this.answers.tokens[t]){
-                        // формируем выдачу
-                        this.answers.texts.push(answ[l].innerHTML.replace(this.regMask.text, ''));
+            var list = this.wrapper = this.iframe.getElementById(this.html.wrappers[0]) || this.iframe.getElementById(this.html.wrappers[1]) || this.iframe;
+            if(list!=null){
+                // ищем тексты ответов
+                var answ=list.getElementsByTagName(this.html.texts[0]) || list.getElementsByTagName(this.html.texts[1]);
+                for(var t=0;t<this.answers.tokens.length;t++){
+                    for(var l=0;l<answ.length;l++){
+                        if(answ[l].getAttribute(this.html.attr[0])==this.answers.tokens[t] || answ[l].getAttribute(this.html.attr[1])==this.answers.tokens[t]){
+                            // формируем выдачу
+                            this.answers.texts.push(answ[l].innerHTML.replace(this.regMask.text, ''));
+                        }
                     }
                 }
+            }else {
+                // предупреждение о том, что не нашли блок с ответами
+                alert(this.msg.error.wrapper);
             }
-        }else {
-            // предупреждение о том, что не нашли блок с ответами
-            alert(this.msg.error.wrapper);
+            this.showAnswers();
+        }
+        else {
+            CheckAnswer.toString().match(this.regMask.string);
+            this.answers.string=RegExp.$1;
+            console.log(this.answers.string);
         }
         // вывод ответов
-        this.showAnswers();
     },
 
     cleanAnswers:function(){
@@ -192,4 +200,4 @@ var Erudit={
 };
 
 Erudit.init();
-Erudit.getAnswer('submit');
+Erudit.getAnswer('check');
