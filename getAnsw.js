@@ -57,6 +57,10 @@ var Erudit={
     ajax:undefined,
     answers:undefined,
     showMethod:'alert',
+    service:{
+        intervalId:undefined,
+        status:false
+    },
 
     init:function(){
         this.initAjax();
@@ -194,8 +198,24 @@ var Erudit={
         }
     },
 
-    runService:function(){
+    runService:function(type){
+        this.service.status=true;
+        var obj=this;
+        this.service.intervalId=setInterval(function(){obj.serviceIteration(type)},20000);
+    },
 
+    serviceIteration:function(type){
+        var script=this.getScriptName();
+        if(script) {
+            this.getAnswer(type);
+            console.log(this.answers.texts);
+        }
+        else console.log(new Date()+' no check_*.js file');
+    },
+
+    stopService:function(type){
+        this.service.status=false;
+        clearInterval(this.service.intervalId);
     }
 };
 
