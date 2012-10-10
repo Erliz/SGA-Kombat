@@ -3,6 +3,7 @@
 #################
 .idea
 h --tags
+atlassian-ide-plugin.xml
 #################
 ## Eclipse
 #################
