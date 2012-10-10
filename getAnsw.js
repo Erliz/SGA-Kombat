@@ -219,7 +219,7 @@ var Erudit={
         else console.log(this.msg.service.empty);
     },
 
-    stopService:function(type){
+    stopService:function(){
         this.service.status=false;
         clearInterval(this.service.intervalId);
     }
