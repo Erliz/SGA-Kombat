@@ -8,6 +8,10 @@ var Erudit={
             wrapper:'Warning: no list!',
             showMethod:'No such output method',
             noAnswer:'No answers find!'
+        },
+        service:{
+            found: new Date()+' Question exist. Finding answer...',
+            empty: new Date()+' No question found'
         }
     },
     time:{
@@ -59,7 +63,8 @@ var Erudit={
     showMethod:'alert',
     service:{
         intervalId:undefined,
-        status:false
+        status:false,
+        timeout: 20 // seconds
     },
 
     init:function(){
@@ -201,16 +206,17 @@ var Erudit={
     runService:function(type){
         this.service.status=true;
         var obj=this;
-        this.service.intervalId=setInterval(function(){obj.serviceIteration(type)},20000);
+        this.service.intervalId=setInterval(function(){obj.serviceIteration(type)},this.service.timeout*1000);
     },
 
     serviceIteration:function(type){
+        this.getIframe();
         var script=this.getScriptName();
         if(script) {
             this.getAnswer(type);
-            console.log(this.answers.texts);
+            console.log(this.msg.service.found);
         }
-        else console.log(new Date()+' no check_*.js file');
+        else console.log(this.msg.service.empty);
     },
 
     stopService:function(type){
@@ -220,4 +226,4 @@ var Erudit={
 };
 
 Erudit.init();
-Erudit.getAnswer('check');
+Erudit.runService('submit');
