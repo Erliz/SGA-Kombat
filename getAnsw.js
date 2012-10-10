@@ -10,8 +10,8 @@ var Erudit={
             noAnswer:'No answers find!'
         },
         service:{
-            found: new Date()+' Question exist. Finding answer...',
-            empty: new Date()+' No question found'
+            found: 'Question exist. Finding answer...',
+            empty: 'No question found'
         }
     },
     time:{
@@ -214,14 +214,18 @@ var Erudit={
         var script=this.getScriptName();
         if(script) {
             this.getAnswer(type);
-            console.log(this.msg.service.found);
+            this.log(this.msg.service.found);
         }
-        else console.log(this.msg.service.empty);
+        else this.log(this.msg.service.empty);
     },
 
     stopService:function(){
         this.service.status=false;
         clearInterval(this.service.intervalId);
+    },
+
+    log:function(msg){
+        console.log(new Date()+' '+msg);
     }
 };
 
