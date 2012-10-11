@@ -46,7 +46,8 @@ var Erudit={
             'id'
         ],
         submit:[
-            'btAnswer'
+            'btAnswer',
+            'btNext'
         ]
     },
 
@@ -147,6 +148,13 @@ var Erudit={
         setTimeout(function(){btn.click()},this.getRand()*1000);
     },
 
+    nextAnswer:function(){
+        this.checkinAnswer();
+        //for test trening
+        var btn=this.iframe.getElementById(this.html.submit[1]);
+        setTimeout(function(){btn.click()},this.getRand()*1000);
+    },
+
     getRand:function(){
         var t=this.time;
         return Math.random() * (t.max - t.min) + t.min;
@@ -199,6 +207,7 @@ var Erudit={
             case 'log': console.log(text);break;
             case 'check': this.checkinAnswer();break;
             case 'submit': this.submitAnswer();break;
+            case 'next': this.nextAnswer();break;
             default : alert(this.msg.error.showMethod);
         }
     },
@@ -230,4 +239,4 @@ var Erudit={
 };
 
 Erudit.init();
-Erudit.runService('submit');
+Erudit.runService('next');
