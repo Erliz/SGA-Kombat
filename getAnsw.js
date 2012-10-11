@@ -39,7 +39,8 @@ var Erudit={
             'span'
         ],
         inputs:[
-            'input'
+            'input',
+            'answer'
         ],
         attr:[
             'answerid',
@@ -133,10 +134,17 @@ var Erudit={
         var t=this.answers.tokens;
         if(t.length==0) alert(this.msg.error.noAnswer);
         var l=this.wrapper;
-        var fields=l.getElementsByTagName('input');
-        for(var i=0;i<t.length;i++){
-            for(var x=0;x<fields.length;x++){
-                if(fields[x].value==t[i])fields[x].checked=true;
+        if(t=='input'){
+            var field=this.iframe.getElementById(this.html.inputs[1]);
+            this.log('set value: '+this.answers.texts[0] );
+            field.value=this.answers.texts[0];
+        }
+        else{
+            var fields=l.getElementsByTagName('input');
+            for(var i=0;i<t.length;i++){
+                for(var x=0;x<fields.length;x++){
+                    if(fields[x].value==t[i])fields[x].checked=true;
+                }
             }
         }
     },
@@ -150,7 +158,7 @@ var Erudit={
 
     nextAnswer:function(){
         this.checkinAnswer();
-        //for test trening
+        //for test training
         var btn=this.iframe.getElementById(this.html.submit[1]);
         setTimeout(function(){btn.click()},this.getRand()*1000);
     },
@@ -183,14 +191,15 @@ var Erudit={
                 // предупреждение о том, что не нашли блок с ответами
                 alert(this.msg.error.wrapper);
             }
-            this.showAnswers();
         }
         else {
             CheckAnswer.toString().match(this.regMask.string);
-            this.answers.string=RegExp.$1;
-            console.log(this.answers.string);
+            this.answers.texts.push(RegExp.$1);
+            this.answers.tokens='input';
+            this.log(this.answers.texts);
         }
         // вывод ответов
+        this.showAnswers();
     },
 
     cleanAnswers:function(){
@@ -212,7 +221,7 @@ var Erudit={
         }
     },
 
-    runService:function(type){
+    startService:function(type){
         this.service.status=true;
         var obj=this;
         this.service.intervalId=setInterval(function(){obj.serviceIteration(type)},this.service.timeout*1000);
@@ -239,4 +248,4 @@ var Erudit={
 };
 
 Erudit.init();
-Erudit.runService('next');
+Erudit.startService('next');
