@@ -7,7 +7,8 @@ var Erudit = {
         error:{
             wrapper:'Warning: no list!',
             showMethod:'No such output method',
-            noAnswer:'No answers find!'
+            noAnswer:'No answers find!',
+            empty: 'Empty script'
         },
         service:{
             found:'Question exist. Finding answer...',
@@ -27,7 +28,10 @@ var Erudit = {
         string:/String\('([а-яА-Яa-zA-Z0-9- ]*)'\)/,
         domain:/([a-zA-Z0-9\.\/:]*)Frameset\.aspx\?View=([0-9]*)&AttemptId=([0-9]*)/,
         script:/(check_[0-9a-z-]*\.js)/,
-        text:/<\/?[^>]+>/gi
+        text:/<\/?[^>]+>/gi,
+        check:/(check_[0-9a-z-]*\.js)/,
+        //node:/(node_[0-9a-z-]+\.htm\?mode=trening)/
+        node:/(node_[0-9a-z-]+\.htm)/
     },
     html:{
         wrappers:[
@@ -58,15 +62,18 @@ var Erudit = {
     url:'',
     node:{
         prev:undefined,
-        current:undefined
+        current:undefined,
+        url:undefined
     },
     ajax:undefined,
     answers:undefined,
+    dictionary:undefined,
     showMethod:'alert',
     service:{
         intervalId:undefined,
         timeout:20 // seconds
     },
+    testType:undefined,
 
     init:function () {
         this.initAjax();
@@ -77,7 +84,10 @@ var Erudit = {
         // в callback обрабатываем всю логику действия
         this.ajax.onreadystatechange = function () {
             if (Erudit.ajax.readyState == 4) {
-                Erudit.parseAnswer(Erudit.ajax.responseText);
+                var answer=Erudit.ajax.responseText;
+                if(answer=='Bad Request') Erudit.log('Ajax: '+answer);
+                if(Erudit.testType=='module_test') Erudit.getDefinitions(answer);
+                else Erudit.parseAnswer(answer);
             }
         }
     },
@@ -98,18 +108,24 @@ var Erudit = {
         this.iframe = frame.contentDocument || frame.contentWindow.document;
     },
 
+    getHiddenFrame:function(){
+        var frame = this.getTframe().getElementById('frameHidden');
+        frame = frame.contentDocument || frame.contentWindow.document;
+        return frame;
+    },
+
     getDomainUrl:function () {
         if (this.url.length > 0) return this.url;
         document.URL.toString().match(this.regMask.domain);
         // формируем  абсолютный путь
-        return this.url = RegExp.$1 + 'Content.aspx/' + RegExp.$2 + '/' + RegExp.$3 + '/scripts/';
+        return this.url = RegExp.$1 + 'Content.aspx/' + RegExp.$2 + '/' + RegExp.$3 + '/';
     },
 
-    getScriptName:function () {
+    getScriptName:function (regString) {
         var scripts = this.iframe.getElementsByTagName('script');
         for (var ki = 0; ki < scripts.length; ki++) {
             var uri = scripts[ki].getAttribute('src');
-            if (uri !== null && uri.match(/(check_[0-9a-z-]*\.js)/)) {
+            if (uri !== null && uri.match(regString)) {
                 // запоминаем токен скрипта
                 return RegExp.$1;
             }
@@ -117,16 +133,45 @@ var Erudit = {
         return false;
     },
 
-    getUrl:function () {
-        return this.getDomainUrl() + this.getScriptName();
+    getCheckUrl:function(){
+        var script= this.getScriptName(this.regMask.check);
+        if(!script) return false;
+        return this.getDomainUrl() + 'scripts/' +script;
+    },
+
+    getNodeUrl:function(){
+        if(this.node.url) return this.node.url;
+        var url=this.getDomainUrl() + this.getHiddenFrame().getElementById('hidContentHref').value;
+        url.match(this.regMask.node);
+        this.node.url=this.getDomainUrl()+RegExp.$1;
+        return this.node.url;
     },
 
     getAnswer:function (method) {
         if (typeof method != "undefined")this.setShowMethod(method);
         this.cleanAnswers();
         this.getIframe();
-        this.ajax.open('get', this.getUrl());
-        this.ajax.send(null);
+        if(this.getType()=='module_test' && this.dictionary){
+            this.findDefinition();
+        }
+        else{
+            this.ajax.open('get', this.getCheckUrl() || this.getNodeUrl());
+            this.ajax.send(null);
+        }
+    },
+
+    getType:function(){
+        if(this.testType) return this.testType;
+        var title=this.getHiddenFrame().getElementById('hidTitle');
+        if(title) title=title.value;
+        else {
+            var frame = document.getElementById('frameTitle');
+            frame = frame.contentDocument || frame.contentWindow.document;
+            title=frame.getElementById('txtTitle').innerHTML;
+        }
+        if(title.search('ГЛОССАРНЫЙ ТРЕНИНГ')!==false) this.testType='module_test';
+        else this.testType='default';
+        return this.testType;
     },
 
     checkinAnswer:function () {
@@ -215,6 +260,48 @@ var Erudit = {
         this.showAnswers();
     },
 
+    findDefinition:function(){
+        this.wrapper=this.iframe.getElementById('divContent') || this.iframe;
+        if(this.wrapper){
+            //var list=this.wrapper.innerHTML.match(/<TD class=staticcell>(.*?)<\/TD>/g);
+            var list=this.wrapper.getElementsByTagName('div');
+            for (var t = 0; t < list.length; t++) {
+                //list[t].match(/<TD class=staticcell>(.*?)<\/TD>/);
+                var token=list[t].getAttribute('id');
+                var answ;
+                if(this.dictionary[token]){
+                    answ=this.dictionary[token].word+' - '+this.dictionary[token].desc.substr(0,30)+'...';
+                }
+                else{
+                    answ=list[t].innerHTML.substr(0,20)+'...';
+                }
+                this.log(answ);
+            }
+        }
+        else this.log(this.msg.error.wrapper);
+    },
+
+    getDefinitions:function(text){
+        if(!text) this.log(this.error.empty);
+        var dictionary={};
+        var i;
+        // todo: не ловит описания со скобками и разные тире.
+        var words=text.match(/AddConcept\((.*?)\)/g);
+        for(i=0;i<=words.length;i++){
+            if(!words[i]) continue;
+            words[i].match(/AddConcept\('(.*?)', '([0-9a-z-]*)'\)/);
+            dictionary[RegExp.$2]={'word':RegExp.$1,'desc':''};
+        }
+        var descriptions=text.match(/AddDefinition\(([а-яА-Яa-zA-Z0-9 -«»',\(\)]*)\)/g);
+        for(i=0;i<=descriptions.length;i++){
+            if(!descriptions[i]) continue;
+            descriptions[i].match(/AddDefinition\('([а-яА-Яa-zA-Z0-9 -«»,;\.\(\)]+)', '([0-9a-z-]*)'\)/);
+            if(dictionary[RegExp.$2])dictionary[RegExp.$2]['desc']=RegExp.$1;
+        }
+        this.dictionary=dictionary;
+        this.findDefinition();
+    },
+
     cleanAnswers:function () {
         this.answers = {
             tokens:[],
@@ -229,7 +316,7 @@ var Erudit = {
                 alert(text);
                 break;
             case 'log':
-                console.log(text);
+                this.log(text);
                 break;
             case 'check':
                 this.checkinAnswer();
@@ -274,4 +361,6 @@ var Erudit = {
 };
 
 Erudit.init();
-Erudit.startService('next');
+
+Erudit.getAnswer('console');
+//Erudit.startService('next');
