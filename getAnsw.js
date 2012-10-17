@@ -15,8 +15,8 @@ var Erudit = {
         }
     },
     time:{
-        max:6,
-        min:3
+        max:25,
+        min:15
     },
     frames:[
         'frameLearnTask',
@@ -64,8 +64,7 @@ var Erudit = {
     answers:undefined,
     showMethod:'alert',
     service:{
-        intervalId:undefined,
-        timeout:20 // seconds
+        intervalId:undefined
     },
 
     init:function () {
@@ -250,7 +249,7 @@ var Erudit = {
         var obj = this;
         this.service.intervalId = setInterval(function () {
             obj.serviceIteration(type)
-        }, this.service.timeout * 1000);
+        }, this.getRand() * 1000);
     },
 
     serviceIteration:function (type) {
