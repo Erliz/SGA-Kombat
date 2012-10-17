@@ -160,7 +160,7 @@ var Erudit = {
     submitAnswer:function () {
         this.checkinAnswer();
         // for slide lecture
-        var btn = this.iframe.getElementById(this.html.submit[0]);
+        var btn = this.iframe.getElementById(this.html.submit[0]) || this.iframe.getElementsByTagName('button')[0];
         setTimeout(function () {
             btn.click()
         }, this.getRand() * 1000);
