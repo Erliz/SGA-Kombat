@@ -55,7 +55,7 @@ var Erudit = {
             'btNext'
         ]
     },
-
+    color:['#BEBEBE','#FFE4E1','#228B22','#00BFFF','#00FF7F','#FFFF00','#B22222','#FFA500','#FF69B4','#9932CC'],
     cframe:undefined,
     iframe:undefined,
     wrapper:undefined,
@@ -152,7 +152,7 @@ var Erudit = {
         this.cleanAnswers();
         this.getIframe();
         if(this.getType()=='module_test' && this.dictionary){
-            this.findDefinition();
+            this.colorDefinition();
         }
         else{
             this.ajax.open('get', this.getCheckUrl() || this.getNodeUrl());
@@ -260,14 +260,15 @@ var Erudit = {
         this.showAnswers();
     },
 
-    findDefinition:function(){
+    colorDefinition:function(){
         this.wrapper=this.iframe.getElementById('divContent') || this.iframe;
         if(this.wrapper){
-            //var list=this.wrapper.innerHTML.match(/<TD class=staticcell>(.*?)<\/TD>/g);
+            var colorSchemas={};
             var list=this.wrapper.getElementsByTagName('div');
             for (var t = 0; t < list.length; t++) {
-                //list[t].match(/<TD class=staticcell>(.*?)<\/TD>/);
                 var token=list[t].getAttribute('id');
+                colorSchemas[token]=this.color[t];
+                list[t].style.backgroundColor=this.color[t];
                 var answ;
                 if(this.dictionary[token]){
                     answ=this.dictionary[token].word+' - '+this.dictionary[token].desc.substr(0,30)+'...';
@@ -276,6 +277,17 @@ var Erudit = {
                     answ=list[t].innerHTML.substr(0,20)+'...';
                 }
                 this.log(answ);
+            }
+            list=this.wrapper.getElementsByTagName('td');
+            for (t = 0; t < list.length; t+=2) {
+                var text=list[t].innerHTML;
+                for(var cs in colorSchemas){
+                    if(this.dictionary[cs]){
+                        if(text==this.dictionary[cs].word){
+                            list[t].style.backgroundColor=colorSchemas[cs];
+                        }
+                    }
+                }
             }
         }
         else this.log(this.msg.error.wrapper);
@@ -286,6 +298,7 @@ var Erudit = {
         var dictionary={};
         var i;
         // todo: не ловит описания со скобками и разные тире.
+        //text.split(["(",")"]).join("'");
         var words=text.match(/AddConcept\((.*?)\)/g);
         for(i=0;i<=words.length;i++){
             if(!words[i]) continue;
@@ -299,7 +312,7 @@ var Erudit = {
             if(dictionary[RegExp.$2])dictionary[RegExp.$2]['desc']=RegExp.$1;
         }
         this.dictionary=dictionary;
-        this.findDefinition();
+        this.colorDefinition();
     },
 
     cleanAnswers:function () {
