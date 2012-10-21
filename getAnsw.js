@@ -51,7 +51,7 @@ var Erudit = {
             'btNext'
         ]
     },
-
+    answerAccuracy:0.95,
     cframe:undefined,
     iframe:undefined,
     wrapper:undefined,
@@ -142,7 +142,7 @@ var Erudit = {
             if(fields.length>0){
                 for (var i = 0; i < t.length; i++) {
                     for (var x = 0; x < fields.length; x++) {
-                        if (fields[x].value == t[i])fields[x].checked = true;
+                        if (fields[x].value == t[i] && Math.random()<=this.answerAccuracy)fields[x].checked = true;
                     }
                 }
             }
