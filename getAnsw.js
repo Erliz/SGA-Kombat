@@ -26,7 +26,7 @@ var Erudit = {
     regMask:{
         token:/([a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})/g,
         string:/String\('([а-яА-Яa-zA-Z0-9- ]*)'\)/,
-        domain:/([a-zA-Z0-9\.\/:]*)Frameset\.aspx\?View=([0-9]*)&AttemptId=([0-9]*)/,
+        domain:/([a-zA-Z0-9\.\/:-]*)Frameset\.aspx\?View=([0-9]*)&AttemptId=([0-9]*)/,
         script:/(check_[0-9a-z-]*\.js)/,
         text:/<\/?[^>]+>/gi,
         check:/(check_[0-9a-z-]*\.js)/,
@@ -85,8 +85,12 @@ var Erudit = {
         this.ajax.onreadystatechange = function () {
             if (Erudit.ajax.readyState == 4) {
                 var answer=Erudit.ajax.responseText;
-                if(answer=='Bad Request') Erudit.log('Ajax: '+answer);
-                if(Erudit.testType=='module_test') Erudit.getDefinitions(answer);
+                if(answer=='Bad Request') {
+                    Erudit.log('Ajax: '+answer);
+                }
+                if(Erudit.testType=='module_test') {
+                    Erudit.getDefinitions(answer);
+                }
                 else Erudit.parseAnswer(answer);
             }
         }
@@ -169,8 +173,8 @@ var Erudit = {
             frame = frame.contentDocument || frame.contentWindow.document;
             title=frame.getElementById('txtTitle').innerHTML;
         }
-        if(title.search('ГЛОССАРНЫЙ ТРЕНИНГ')!==false) this.testType='module_test';
-        else this.testType='default';
+        /*if(title.search('ГЛОССАРНЫЙ ТРЕНИНГ')!==false) this.testType='module_test';
+        else */this.testType='default';
         return this.testType;
     },
 
@@ -375,5 +379,7 @@ var Erudit = {
 
 Erudit.init();
 
-Erudit.getAnswer('console');
+Erudit.getAnswer('log');
+// modular lecture
+Erudit.startService('submit');
 //Erudit.startService('next');
